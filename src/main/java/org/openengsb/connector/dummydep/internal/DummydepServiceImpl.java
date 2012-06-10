@@ -18,7 +18,11 @@
 package org.openengsb.connector.dummydep.internal;
 
 import java.io.File;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 import org.openengsb.core.api.AliveState;
+import org.openengsb.core.api.context.ContextHolder;
 import org.openengsb.core.api.model.OpenEngSBFileModel;
 import org.openengsb.core.common.AbstractOpenEngSBConnectorService;
 import org.openengsb.core.common.util.ModelUtils;
@@ -28,6 +32,7 @@ import org.openengsb.domain.dependency.MergeSuccessEvent;
 
 public class DummydepServiceImpl extends AbstractOpenEngSBConnectorService implements DependencyDomain {
     private DependencyDomainEvents events;
+    private Executor executor = Executors.newSingleThreadExecutor();
 
     public DummydepServiceImpl(String instanceId) {
         super(instanceId);
@@ -40,11 +45,22 @@ public class DummydepServiceImpl extends AbstractOpenEngSBConnectorService imple
 
     @Override
     public void merge(final OpenEngSBFileModel directory, final String dependencyLocation, final long processId) {
-        File projectPath = directory.getFile();
+        final String contextId = ContextHolder.get().getCurrentContextId();
+        Runnable runMerge = new Runnable() {
 
-        OpenEngSBFileModel outPath = ModelUtils.createEmptyModelObject(OpenEngSBFileModel.class);
-        outPath.setFile(projectPath);
-        events.raiseEvent(new MergeSuccessEvent(processId, outPath, ""));
+            @Override
+            public void run() {
+                String oldCtx = ContextHolder.get().getCurrentContextId();
+                ContextHolder.get().setCurrentContextId(contextId);
+                File projectPath = directory.getFile();
+                
+                OpenEngSBFileModel outPath = ModelUtils.createEmptyModelObject(OpenEngSBFileModel.class);
+                outPath.setFile(projectPath);
+                events.raiseEvent(new MergeSuccessEvent(processId, outPath, ""));
+                ContextHolder.get().setCurrentContextId(oldCtx);
+            }
+        };
+        executor.execute(runMerge);
     }
     public void setDependencyEvents(DependencyDomainEvents events) {
         this.events = events;
