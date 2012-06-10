@@ -29,7 +29,7 @@
       <entry key="domain" value="dependency" />
       <entry key="connector" value="dummydep" />
     </service-properties>
-    <bean class="org.openengsb.connector.dummydep.internal.MavendepServiceInstanceFactory">
+    <bean class="org.openengsb.connector.dummydep.internal.DummydepServiceInstanceFactory">
       <property name="dependencyEvents" ref="dependencyEvents" />
     </bean>
   </service>
@@ -42,7 +42,7 @@
       <entry key="domain" value="dependency" />
       <entry key="connector" value="dummydep" />
     </service-properties>
-    <bean class="org.openengsb.connector.dummydep.internal.MavendepConnectorProvider">
+    <bean class="org.openengsb.connector.dummydep.internal.DummydepConnectorProvider">
       <property name="id" value="dummydep" />
       <property name="bundleContext" ref="blueprintBundleContext" />
     </bean>
